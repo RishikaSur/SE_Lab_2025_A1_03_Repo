@@ -1,5 +1,5 @@
 bin/
 include/
 lib*
-*.db
+
 *.cfg
