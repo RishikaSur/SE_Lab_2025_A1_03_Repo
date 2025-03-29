@@ -90,15 +90,15 @@ def main():
 
         while True:
                 display_menu()
-                choice = input("Enter your choice: ")
+                choice = int(input("Enter your choice: "))
 
-                if choice == '1':
+                if choice == 1:
                         roll_number = int(input("Enter roll number: "))
                         name = input("Enter name: ")
                         add_student(roll_number, name)
                         print("Student added successfully.")
 
-                elif choice == '2':
+                elif choice == 2:
                         tid = input("Enter your teacher id : ").strip().lower()
                         if tid in teachers:
                                 while True:
@@ -112,11 +112,11 @@ def main():
                         else:
                                 print("Invalid Teacher ID entered. Access Denied")
 
-                elif choice == '3':
+                elif choice == 3:
                         students = sort_database()
                         display_students(students)
 
-                elif choice == '4':
+                elif choice == 4:
                         print("Exiting program.")
                         break
 
