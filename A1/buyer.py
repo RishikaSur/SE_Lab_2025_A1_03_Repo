@@ -1,5 +1,5 @@
-from db import inventory as inv
 
+from db import inventory as inv
 
 def show():
     while True:
@@ -25,7 +25,6 @@ Enter choice: """
             print("Bad Choice. Try again")
             continue
 
-
 def update():
     while True:
         name = input("Enter item name: ")
@@ -33,11 +32,9 @@ def update():
 
         row = inv.getItem(name)
 
-        if (
-            input(
-                f"{quant} units of {name} at {row[2]} each.\nTotal cost: {row[2] * quant}/-\nBuy[y/n]: "
-            ).lower()
-            == "y"
-        ):
+        total_cost = row[2] * quant
+        confirm = input(str(quant) + " units of " + name + " at " + str(row[2]) + " each.\nTotal cost: " + str(total_cost) + "/-\nBuy[y/n]: ")
+
+        if confirm.lower() == "y":
             inv.updateItem(name, row[1] - quant, row[2])
             break
