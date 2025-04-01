@@ -1,6 +1,5 @@
 from db import inventory as inv
 
-
 def show():
     while True:
         ch = int(
@@ -31,22 +30,19 @@ Enter choice: """
             print("Bad Choice. Try again")
             continue
 
-
 def add():
     name = input("Enter item name: ")
     quant = int(input("Enter quantity of item: "))
     cost = float(input("Enter cost of item: "))
 
     inv.addItem(name, quant, cost)
-    print(f"{name} has been added to the inventory")
-
+    print(name + " has been added to the inventory")
 
 def remove():
     name = input("Enter item name to remove: ")
 
     inv.removeItem(name)
-    print(f"{name} has been removed from the inventory")
-
+    print(name + " has been removed from the inventory")
 
 def update():
     name = input("Enter item name to update: ")
@@ -58,4 +54,8 @@ def update():
     quant = int(quant) if quant.lower() != "n" else None
     cost = float(cost) if cost.lower() != "n" else None
 
-    inv.updateItem(name, row[1] + quant, cost)
+    new_quant = row[1] + quant if quant is not None else row[1]
+    inv.updateItem(name, new_quant, cost)
+
+    print("Updated " + name + " in the inventory")
+
