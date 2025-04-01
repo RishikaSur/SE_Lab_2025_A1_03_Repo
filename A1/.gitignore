@@ -1,6 +1,7 @@
-__pycache__
-bin/
-include/
-lib*
+__pycache__/
 *.db
-*.cfg
+venv/
+.DS_Store
+Thumbs.db
+
+
