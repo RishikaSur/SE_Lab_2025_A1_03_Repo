@@ -2,23 +2,23 @@ import sqlite3
 import sys
 from datetime import datetime
 
-# Initialize SQLite connection
+# Initialize SQLite connection and alter schema if needed
 def init_db():
     conn = sqlite3.connect('tasks.db')
     cursor = conn.cursor()
 
-    # Create the tasks table with updated schema
-    cursor.execute('''CREATE TABLE IF NOT EXISTS tasks (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name TEXT NOT NULL,
-                        column_name TEXT,
-                        description TEXT NOT NULL,
-                        completed BOOLEAN NOT NULL DEFAULT 0,
-                        created_at TEXT NOT NULL,
-                        updated_at TEXT NOT NULL
-                    )''')
+    # Alter tasks table to add missing columns
+    try:
+        cursor.execute('''ALTER TABLE tasks ADD COLUMN name TEXT NOT NULL''')
+    except sqlite3.OperationalError:
+        print("Column 'name' already exists or table structure is incompatible.")
 
-    # Create the task_history table for version control
+    try:
+        cursor.execute('''ALTER TABLE tasks ADD COLUMN column_name TEXT''')
+    except sqlite3.OperationalError:
+        print("Column 'column_name' already exists or table structure is incompatible.")
+    
+    # Create task_history table if it doesn't exist
     cursor.execute('''CREATE TABLE IF NOT EXISTS task_history (
                         history_id INTEGER PRIMARY KEY AUTOINCREMENT,
                         task_id INTEGER,
@@ -152,7 +152,7 @@ def view_task_history(task_id):
 
 # Main function to handle user inputs
 def main():
-    init_db()
+    init_db()  # Initialize DB and ensure columns are added if needed
 
     while True:
         print("\nTask Management CLI")
@@ -163,28 +163,28 @@ def main():
         print("5. View Task History")
         print("6. Exit")
         
-        choice = input("Enter your choice (1-6): ")
+        choice = int(input("Enter your choice (1-6): "))
         
-        if choice == '1':
+        if choice == 1:
             name = input("Enter task name: ")
             column_name = input("Enter task column (optional): ")
             description = input("Enter task description: ")
             add_task(name, column_name, description)
-        elif choice == '2':
+        elif choice == 2:
             list_tasks()
-        elif choice == '3':
+        elif choice == 3:
             task_id = int(input("Enter task ID to edit: "))
             name = input("Enter new task name: ")
             column_name = input("Enter new task column (optional): ")
             description = input("Enter new task description: ")
             edit_task(task_id, name, column_name, description)
-        elif choice == '4':
+        elif choice == 4:
             task_id = int(input("Enter task ID to complete: "))
             complete_task(task_id)
-        elif choice == '5':
+        elif choice == 5:
             task_id = int(input("Enter task ID to view history: "))
             view_task_history(task_id)
-        elif choice == '6':
+        elif choice == 6:
             print("Exiting...")
             sys.exit(0)
         else:
@@ -192,4 +192,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
