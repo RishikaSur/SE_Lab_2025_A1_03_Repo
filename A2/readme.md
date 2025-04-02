@@ -52,4 +52,4 @@ marks (
 
 ## License
 
-This project is licensed under the MIT License - LICENSE
+This project is licensed under the MIT License - [LICENSE](https://github.com/RishikaSur/SE_Lab_2025_A1_03_Repo/blob/21845e92a85dd7f64ae99c5736f3d453a5768cd9/LICENSE)
