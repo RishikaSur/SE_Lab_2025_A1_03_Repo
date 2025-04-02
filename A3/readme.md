@@ -71,5 +71,5 @@ python task_manager.py history
 This project is licensed under the MIT License. See `LICENSE` for details.
 
 ## Contact
-For any inquiries, please reach out to [your-email@example.com](mailto:your-email@example.com).
+For any inquiries, please reach out to mayankrathi3009@gmail.com.
 
