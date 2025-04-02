@@ -30,7 +30,7 @@ This is a **simple inventory management system** written in **Python** using **S
 1️⃣ **Clone the Repository**  
 ```bash
 git clone https://github.com/RishikaSur/SE_Lab_2025_A1_03_Repo.git
-cd SE_Lab_2025_A1_03_Repo.git
+cd SE_Lab_2025_A1_03_Repo
 ```
 
 2️⃣ **Run the Program**  
@@ -43,7 +43,7 @@ python main.py
 ## **Usage**  
 
 ### **1️⃣ Running the Program**  
-- When you start `main.py`, you will see the main menu:  
+- After starting `main.py`, the main menu will be as :  
   ```
   Welcome to the Inventory System
 
