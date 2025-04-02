@@ -2,23 +2,23 @@ import sqlite3
 import sys
 from datetime import datetime
 
-# Initialize SQLite connection and alter schema if needed
+# Initialize SQLite connection
 def init_db():
     conn = sqlite3.connect('tasks.db')
     cursor = conn.cursor()
 
-    # Alter tasks table to add missing columns
-    try:
-        cursor.execute('''ALTER TABLE tasks ADD COLUMN name TEXT NOT NULL''')
-    except sqlite3.OperationalError:
-        print("Column 'name' already exists or table structure is incompatible.")
+    # Create the tasks table with updated schema
+    cursor.execute('''CREATE TABLE IF NOT EXISTS tasks (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        column_name TEXT,
+                        description TEXT NOT NULL,
+                        completed BOOLEAN NOT NULL DEFAULT 0,
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL
+                    )''')
 
-    try:
-        cursor.execute('''ALTER TABLE tasks ADD COLUMN column_name TEXT''')
-    except sqlite3.OperationalError:
-        print("Column 'column_name' already exists or table structure is incompatible.")
-    
-    # Create task_history table if it doesn't exist
+    # Create the task_history table for version control
     cursor.execute('''CREATE TABLE IF NOT EXISTS task_history (
                         history_id INTEGER PRIMARY KEY AUTOINCREMENT,
                         task_id INTEGER,
@@ -152,7 +152,7 @@ def view_task_history(task_id):
 
 # Main function to handle user inputs
 def main():
-    init_db()  # Initialize DB and ensure columns are added if needed
+    init_db()
 
     while True:
         print("\nTask Management CLI")
