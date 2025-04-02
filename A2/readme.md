@@ -4,7 +4,7 @@ This repository contains the solution for Assignment 2 of the Software Engineeri
 
 ## Files
 
-- `marks_management.py`: Main Python script with CLI interface
+- `main.py`: Main Python script with CLI interface
 - `marks.db`: SQLite3 database (automatically created on first run)
 
 ## Key Features
@@ -18,18 +18,18 @@ This repository contains the solution for Assignment 2 of the Software Engineeri
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/itsjustasemicolon/SE_Lab_2025_A1_04.git
+git clone https://github.com/RishikaSur/SE_Lab_2025_A1_03.git
 ```
 
 2. Navigate to project directory:
 ```bash
- cd .\SE_Lab_2025_A1_04\A2
+ cd .\SE_Lab_2025_A1_03\A2
 ```
 
 3. Run the application:
 ```bash
-python3 marks_management.py    # Linux/MacOS
-py marks_management.py         # Windows
+python3 main.py    # Linux/MacOS
+py main.py         # Windows
 ```
 
 ## Usage
