@@ -1,7 +1,15 @@
+# Ignore Python cache files
 __pycache__/
+
+# Ignore SQLite database files
 *.db
+
+# Ignore virtual environment folders
 venv/
+
+# Ignore system-generated files
 .DS_Store
 Thumbs.db
+
 
 
