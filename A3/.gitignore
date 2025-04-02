@@ -6,10 +6,6 @@ __pycache__/
 venv/
 .env/
 
-# Database files
-*.db
-*.sqlite3
-
 # Logs
 logs/
 *.log
