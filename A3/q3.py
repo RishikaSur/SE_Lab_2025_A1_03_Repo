@@ -1,165 +1,195 @@
 import sqlite3
+import sys
 from datetime import datetime
 
-DATABASE_FILE = 'tasks.db'
+# Initialize SQLite connection
+def init_db():
+    conn = sqlite3.connect('tasks.db')
+    cursor = conn.cursor()
 
-def initialize_db():
-    conn = sqlite3.connect(DATABASE_FILE)
-    c = conn.cursor()
+    # Create the tasks table with updated schema
+    cursor.execute('''CREATE TABLE IF NOT EXISTS tasks (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        column_name TEXT,
+                        description TEXT NOT NULL,
+                        completed BOOLEAN NOT NULL DEFAULT 0,
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL
+                    )''')
 
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            column_name TEXT,
-            description TEXT NOT NULL,
-            completed BOOLEAN NOT NULL DEFAULT 0,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        )
-    ''')
-
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS task_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            task_id INTEGER,
-            name TEXT,
-            description TEXT,
-            column_name TEXT,
-            completed BOOLEAN,
-            changed_at TEXT,
-            change_type TEXT,
-            FOREIGN KEY (task_id) REFERENCES tasks(id)
-        )
-    ''')
-
+    # Create the task_history table for version control
+    cursor.execute('''CREATE TABLE IF NOT EXISTS task_history (
+                        history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        task_id INTEGER,
+                        name TEXT,
+                        column_name TEXT,
+                        description TEXT,
+                        completed BOOLEAN,
+                        created_at TEXT,
+                        updated_at TEXT,
+                        timestamp TEXT,
+                        action TEXT,
+                        FOREIGN KEY (task_id) REFERENCES tasks(id)
+                    )''')
     conn.commit()
     conn.close()
 
-initialize_db()
-
-def connect_db():
-    return sqlite3.connect(DATABASE_FILE)
-
+# Add a task
 def add_task(name, column_name, description):
-    conn = connect_db()
-    c = conn.cursor()
-    created_at = updated_at = datetime.now().isoformat()
-    c.execute('''
-        INSERT INTO tasks (name, column_name, description, completed, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (name, column_name, description, False, created_at, updated_at))
-    conn.commit()
-    conn.close()
+    conn = sqlite3.connect('tasks.db')
+    cursor = conn.cursor()
 
-def edit_task(task_id, new_name, new_column_name, new_description):
-    conn = connect_db()
-    c = conn.cursor()
-    updated_at = datetime.now().isoformat()
-
-    c.execute('SELECT name, description, column_name, completed FROM tasks WHERE id = ?', (task_id,))
-    old_task = c.fetchone()
-
-    if not old_task:
-        print("Task not found.")
-        return
-
-    change_type = 'edit'
-    c.execute('''
-        INSERT INTO task_history (task_id, name, description, column_name, completed, changed_at, change_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (task_id, old_task[0], old_task[1], old_task[2], old_task[3], updated_at, change_type))
-
-    c.execute('''
-        UPDATE tasks
-        SET name = ?, column_name = ?, description = ?, updated_at = ?
-        WHERE id = ?
-    ''', (new_name, new_column_name, new_description, updated_at, task_id))
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    updated_at = created_at  # Initially, created_at and updated_at will be the same
+    cursor.execute('''INSERT INTO tasks (name, column_name, description, created_at, updated_at) 
+                      VALUES (?, ?, ?, ?, ?)''', (name, column_name, description, created_at, updated_at))
 
     conn.commit()
     conn.close()
+    print("Task added successfully.")
 
-def complete_task(task_id):
-    conn = connect_db()
-    c = conn.cursor()
-    updated_at = datetime.now().isoformat()
+# List all tasks
+def list_tasks():
+    conn = sqlite3.connect('tasks.db')
+    cursor = conn.cursor()
 
-    c.execute('SELECT name, description, column_name, completed FROM tasks WHERE id = ?', (task_id,))
-    old_task = c.fetchone()
+    cursor.execute('''SELECT id, name, column_name, description, completed, created_at, updated_at FROM tasks''')
+    tasks = cursor.fetchall()
 
-    if not old_task:
-        print("Task not found.")
-        return
-
-    change_type = 'complete'
-    c.execute('''
-        INSERT INTO task_history (task_id, name, description, column_name, completed, changed_at, change_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (task_id, old_task[0], old_task[1], old_task[2], old_task[3], updated_at, change_type))
-
-    c.execute('''
-        UPDATE tasks
-        SET completed = ?, updated_at = ?
-        WHERE id = ?
-    ''', (True, updated_at, task_id))
-
-    conn.commit()
-    conn.close()
-
-def delete_task(task_id):
-    conn = connect_db()
-    c = conn.cursor()
-    c.execute('DELETE FROM task_history WHERE task_id = ?', (task_id,))
-    c.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
-    conn.commit()
-    conn.close()
-
-def show_tasks():
-    conn = connect_db()
-    c = conn.cursor()
-    c.execute('SELECT * FROM tasks')
-    tasks = c.fetchall()
-    conn.close()
-
-    print("\nTasks:")
-    print("=" * 80)
-    print(f"{'ID':<5} {'Task Name':<20} {'Column Name':<15} {'Description':<25} {'Status':<10} {'Created At':<20} {'Updated At'}")
-    print("=" * 80)
+    if tasks:
+        for task in tasks:
+            print("ID: " + str(task[0]) + " | Name: " + task[1] + " | Column: " + str(task[2]) + 
+                  " | Description: " + task[3] + " | Completed: " + str(task[4]) + 
+                  " | Created At: " + task[5] + " | Updated At: " + task[6])
+    else:
+        print("No tasks available.")
     
-    for task in tasks:
-        if len(task) < 7:  # Prevent IndexError
-            print(f"Skipping invalid task record: {task}")
-            continue
-        
-        status = "Completed" if task[4] else "Pending"
-        print(f"{task[0]:<5} {task[1]:<20} {task[2] or 'N/A':<15} {task[3]:<25} {status:<10} {task[5]:<20} {task[6]}")
+    conn.close()
 
+# Edit a task description or other attributes
+def edit_task(task_id, name, column_name, description):
+    conn = sqlite3.connect('tasks.db')
+    cursor = conn.cursor()
+
+    # Get current task state for history logging
+    cursor.execute('''SELECT name, column_name, description, completed, created_at, updated_at FROM tasks WHERE id = ?''', (task_id,))
+    task = cursor.fetchone()
+
+    if task:
+        old_name, old_column_name, old_description, old_completed, created_at, old_updated_at = task
+
+        # Insert into history
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute('''INSERT INTO task_history (task_id, name, column_name, description, completed, created_at, updated_at, timestamp, action) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                       (task_id, old_name, old_column_name, old_description, old_completed, created_at, old_updated_at, timestamp, 'edited'))
+
+        # Update task with new values
+        updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute('''UPDATE tasks SET name = ?, column_name = ?, description = ?, updated_at = ? WHERE id = ?''',
+                       (name, column_name, description, updated_at, task_id))
+
+        conn.commit()
+        print("Task updated successfully.")
+    else:
+        print("Task not found.")
+
+    conn.close()
+
+# Mark a task as completed
+def complete_task(task_id):
+    conn = sqlite3.connect('tasks.db')
+    cursor = conn.cursor()
+
+    # Get current task state for history logging
+    cursor.execute('''SELECT name, column_name, description, completed, created_at, updated_at FROM tasks WHERE id = ?''', (task_id,))
+    task = cursor.fetchone()
+
+    if task:
+        old_name, old_column_name, old_description, old_completed, created_at, old_updated_at = task
+
+        if old_completed == 1:
+            print("Task already completed.")
+            return
+
+        # Insert into history
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute('''INSERT INTO task_history (task_id, name, column_name, description, completed, created_at, updated_at, timestamp, action) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                       (task_id, old_name, old_column_name, old_description, old_completed, created_at, old_updated_at, timestamp, 'completed'))
+
+        # Mark task as completed
+        updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute('''UPDATE tasks SET completed = 1, updated_at = ? WHERE id = ?''', (updated_at, task_id))
+        
+        conn.commit()
+        print("Task marked as completed.")
+    else:
+        print("Task not found.")
+
+    conn.close()
+
+# View task history
+def view_task_history(task_id):
+    conn = sqlite3.connect('tasks.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''SELECT timestamp, action, name, column_name, description, completed, created_at, updated_at 
+                      FROM task_history WHERE task_id = ? ORDER BY timestamp DESC''', (task_id,))
+    history = cursor.fetchall()
+
+    if history:
+        for record in history:
+            print("Timestamp: " + record[0] + " | Action: " + record[1] + 
+                  " | Name: " + record[2] + " | Column: " + str(record[3]) + 
+                  " | Description: " + record[4] + " | Completed: " + str(record[5]) + 
+                  " | Created At: " + record[6] + " | Updated At: " + record[7])
+    else:
+        print("No history available for this task.")
+    
+    conn.close()
+
+# Main function to handle user inputs
 def main():
+    init_db()
+
     while True:
         print("\nTask Management CLI")
-        print("Available commands: add <name> <column_name> <description>, edit <task_id> <new_name> <new_column_name> <new_description>, complete <task_id>, delete <task_id>, show, exit")
-        command = input("Enter a command: ").strip().lower()
-
-        parts = command.split(" ", 4)
-        action = parts[0]
-
-        if action == "exit":
-            break
-        elif action == "add" and len(parts) > 3:
-            add_task(parts[1], parts[2], parts[3])
-        elif action == "edit" and len(parts) > 4:
-            edit_task(int(parts[1]), parts[2], parts[3], parts[4])
-        elif action == "complete" and len(parts) > 1:
-            complete_task(int(parts[1]))
-        elif action == "delete" and len(parts) > 1:
-            delete_task(int(parts[1]))
-        elif action == "show":
-            show_tasks()
+        print("1. Add Task")
+        print("2. List Tasks")
+        print("3. Edit Task")
+        print("4. Complete Task")
+        print("5. View Task History")
+        print("6. Exit")
+        
+        choice = input("Enter your choice (1-6): ")
+        
+        if choice == '1':
+            name = input("Enter task name: ")
+            column_name = input("Enter task column (optional): ")
+            description = input("Enter task description: ")
+            add_task(name, column_name, description)
+        elif choice == '2':
+            list_tasks()
+        elif choice == '3':
+            task_id = int(input("Enter task ID to edit: "))
+            name = input("Enter new task name: ")
+            column_name = input("Enter new task column (optional): ")
+            description = input("Enter new task description: ")
+            edit_task(task_id, name, column_name, description)
+        elif choice == '4':
+            task_id = int(input("Enter task ID to complete: "))
+            complete_task(task_id)
+        elif choice == '5':
+            task_id = int(input("Enter task ID to view history: "))
+            view_task_history(task_id)
+        elif choice == '6':
+            print("Exiting...")
+            sys.exit(0)
         else:
-            print("Invalid command or missing arguments. Please try again.")
+            print("Invalid choice. Please try again.")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
-
-
 
