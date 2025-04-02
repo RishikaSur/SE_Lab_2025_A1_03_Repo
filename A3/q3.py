@@ -7,6 +7,7 @@ def initialize_db():
     conn = sqlite3.connect(DATABASE_FILE)
     c = conn.cursor()
 
+    # Creating tasks table if not exists
     c.execute('''
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,6 +20,7 @@ def initialize_db():
         )
     ''')
 
+    # Creating task history table if not exists
     c.execute('''
         CREATE TABLE IF NOT EXISTS task_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,40 +38,58 @@ def initialize_db():
     conn.commit()
     conn.close()
 
-initialize_db()
-
 def connect_db():
-    return sqlite3.connect(DATABASE_FILE)
+    try:
+        print("Connecting to the database...")
+        conn = sqlite3.connect(DATABASE_FILE)
+        print("Connection established.")
+        return conn
+    except sqlite3.Error as e:
+        print("Error connecting to database: " + str(e))
+        return None
 
 def add_task(name, column_name, description):
     conn = connect_db()
+    if conn is None:
+        return
+
     c = conn.cursor()
     created_at = updated_at = datetime.now().isoformat()
+
+    # Inserting the new task into the tasks table
     c.execute('''
         INSERT INTO tasks (name, column_name, description, completed, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)
     ''', (name, column_name, description, False, created_at, updated_at))
+
     conn.commit()
     conn.close()
 
 def edit_task(task_id, new_name, new_column_name, new_description):
     conn = connect_db()
+    if conn is None:
+        return
+
     c = conn.cursor()
     updated_at = datetime.now().isoformat()
 
+    # Fetch old task data before updating
     c.execute('SELECT name, description, column_name, completed FROM tasks WHERE id = ?', (task_id,))
     old_task = c.fetchone()
 
     if not old_task:
         print("Task not found.")
+        conn.close()
         return
 
+    # Insert into history before making changes
     change_type = 'edit'
     c.execute('''
         INSERT INTO task_history (task_id, name, description, column_name, completed, changed_at, change_type)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', (task_id, old_task[0], old_task[1], old_task[2], old_task[3], updated_at, change_type))
 
+    # Updating the task data
     c.execute('''
         UPDATE tasks
         SET name = ?, column_name = ?, description = ?, updated_at = ?
@@ -81,22 +101,29 @@ def edit_task(task_id, new_name, new_column_name, new_description):
 
 def complete_task(task_id):
     conn = connect_db()
+    if conn is None:
+        return
+
     c = conn.cursor()
     updated_at = datetime.now().isoformat()
 
+    # Fetch old task data before completing
     c.execute('SELECT name, description, column_name, completed FROM tasks WHERE id = ?', (task_id,))
     old_task = c.fetchone()
 
     if not old_task:
         print("Task not found.")
+        conn.close()
         return
 
+    # Insert into history before making changes
     change_type = 'complete'
     c.execute('''
         INSERT INTO task_history (task_id, name, description, column_name, completed, changed_at, change_type)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', (task_id, old_task[0], old_task[1], old_task[2], old_task[3], updated_at, change_type))
 
+    # Mark the task as completed
     c.execute('''
         UPDATE tasks
         SET completed = ?, updated_at = ?
@@ -108,45 +135,71 @@ def complete_task(task_id):
 
 def delete_task(task_id):
     conn = connect_db()
+    if conn is None:
+        return
+
     c = conn.cursor()
+
+    # Deleting task from task history and tasks table
     c.execute('DELETE FROM task_history WHERE task_id = ?', (task_id,))
     c.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
+
     conn.commit()
     conn.close()
 
 def show_tasks():
     conn = connect_db()
+    if conn is None:
+        return
+
     c = conn.cursor()
     c.execute('SELECT * FROM tasks')
     tasks = c.fetchall()
     conn.close()
 
+    if not tasks:
+        print("No tasks found.")
+        return
+
     print("\nTasks:")
     print("=" * 80)
-    print(f"{'ID':<5} {'Task Name':<20} {'Column Name':<15} {'Description':<25} {'Status':<10} {'Created At':<20} {'Updated At'}")
+    print("{:<5} {:<20} {:<15} {:<25} {:<10} {:<20} {:<20}".format("ID", "Task Name", "Column Name", "Description", "Status", "Created At", "Updated At"))
     print("=" * 80)
-    
+
     for task in tasks:
+        if len(task) != 7:
+            print("Skipping task due to incorrect number of fields: " + str(task))
+            continue
+
         status = "Completed" if task[4] else "Pending"
-        print(f"{task[0]:<5} {task[1]:<20} {task[2]:<15} {task[3]:<25} {status:<10} {task[5]:<20} {task[6]}")
+        print("{:<5} {:<20} {:<15} {:<25} {:<10} {:<20} {:<20}".format(task[0], task[1], task[2], task[3], status, task[5], task[6]))
 
 def show_task_history(task_id):
     conn = connect_db()
+    if conn is None:
+        return
+
     c = conn.cursor()
     c.execute('SELECT * FROM task_history WHERE task_id = ?', (task_id,))
     history = c.fetchall()
     conn.close()
 
+    if not history:
+        print("No history found for this task.")
+        return
+
     print("\nTask History:")
     print("=" * 80)
-    print(f"{'History ID':<10} {'Task Name':<20} {'Description':<25} {'Column Name':<15} {'Status':<10} {'Changed At':<20} {'Change Type'}")
+    print("{:<10} {:<20} {:<25} {:<15} {:<10} {:<20} {:<20}".format("History ID", "Task Name", "Description", "Column Name", "Status", "Changed At", "Change Type"))
     print("=" * 80)
-    
+
     for record in history:
         status = "Completed" if record[5] else "Pending"
-        print(f"{record[0]:<10} {record[2]:<20} {record[3]:<25} {record[4]:<15} {status:<10} {record[6]:<20} {record[7]}")
+        print("{:<10} {:<20} {:<25} {:<15} {:<10} {:<20} {:<20}".format(record[0], record[2], record[3], record[4], status, record[6], record[7]))
 
 def main():
+    initialize_db()  # Ensure the database is initialized
+
     while True:
         print("\nTask Management CLI")
         print("Available commands: add <name> <column_name> <description>, edit <task_id> <new_name> <new_column_name> <new_description>, complete <task_id>, delete <task_id>, show, history <task_id>, exit")
@@ -174,6 +227,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
