@@ -99,7 +99,7 @@ def main():
                         print("Student added successfully.")
 
                 elif choice == 2:
-                        tid = input("Enter your teacher id : ").strip().lower()
+                        tid = input("Enter your teacher id (t1/t2/t3) : ").strip().lower()
                         if tid in teachers:
                                 while True:
                                         roll_number = int(input("Enter roll number: "))
