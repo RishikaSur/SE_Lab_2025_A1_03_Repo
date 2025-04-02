@@ -1,8 +1,7 @@
-Here’s a **README.md** file for the project:  
 
----
 
 ### **Inventory Management System**  
+---
 
 This is a **simple inventory management system** written in **Python** using **SQLite**. It allows users to **buy items (as a buyer)** and **manage stock (as a seller)** from a single interface.  
 
@@ -30,8 +29,8 @@ This is a **simple inventory management system** written in **Python** using **S
 
 1️⃣ **Clone the Repository**  
 ```bash
-git clone https://github.com/yourusername/inventory-management.git
-cd inventory-management
+git clone https://github.com/RishikaSur/SE_Lab_2025_A1_03_Repo.git
+cd SE_Lab_2025_A1_03_Repo.git
 ```
 
 2️⃣ **Run the Program**  
