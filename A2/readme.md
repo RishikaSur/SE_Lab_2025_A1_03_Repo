@@ -18,12 +18,12 @@ This repository contains the solution for Assignment 2 of the Software Engineeri
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/RishikaSur/SE_Lab_2025_A1_03.git
+git clone https://github.com/RishikaSur/SE_Lab_2025_A1_03_Repo.git
 ```
 
 2. Navigate to project directory:
 ```bash
- cd .\SE_Lab_2025_A1_03\A2
+ cd .\SE_Lab_2025_A1_03_Repo\A2
 ```
 
 3. Run the application:
