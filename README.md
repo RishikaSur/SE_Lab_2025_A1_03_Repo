@@ -3,14 +3,14 @@
 Welcome to the collaborative repository for three different systems designed to manage various tasks and processes. This repository contains three systems that have been developed as part of an academic assignment. Each system will be handled by a different student, and version control will be used throughout the development.
 
 ## 📝 Table of Contents
-- [Project Overview]
-- [Systems]
-  - [1. Inventory Management System]
-  - [2. Marks Management System]
-  - [3. Task Management CLI Tool]
-- [Contributing]
-- [Version Control]
-- [License]
+- Project Overview
+- Systems
+  - 1. Inventory Management System
+  - 2. Marks Management System
+  - 3. Task Management CLI Tool
+- Contributing
+- Version Control
+- License
 
 ---
 
